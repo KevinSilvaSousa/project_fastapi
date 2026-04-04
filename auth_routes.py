@@ -1,6 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from models import Usuario
-from dependencias import pegar_secao
+from dependencies import pegar_secao
+from main import pwd_context
+from schemas import UsuarioSchema
+from sqlalchemy.orm import Session
 
 auth_router = APIRouter (prefix="/auth", tags=["auth"])
 
@@ -13,14 +16,15 @@ async def home():
 
 
 @auth_router.post("/criar_conta")
-async def criar_conta(email: str, senha: str, nome: str, session = Depends(pegar_secao)):
-    usuario = session.query(Usuario).filter(Usuario.email==email).first()
+async def criar_conta(usuario_schema: UsuarioSchema, session = Depends(pegar_secao)):
+    usuario = session.query(Usuario).filter(Usuario.email==usuario_schema.email).first()
     if usuario:
         #ja existe
-        return {"messagem", "Já existe um usuario com esse email"}
+        raise HTTPException(status_code=400, detail="Email já cadastrado")
     else:
-        novo_usuario = Usuario(nome, email, senha)
+        senha_criptografada = pwd_context.hash(usuario_schema.senha)
+        novo_usuario = Usuario(usuario_schema.nome, usuario_schema.email, senha_criptografada, usuario_schema.ativo, usuario_schema.admin)
         session.add(novo_usuario)
         session.commit()
-        return {"messagem", "usuario cadastrado"}
+        return {"messagem", f"usuario cadastrado: {usuario_schema.email}"}
     
