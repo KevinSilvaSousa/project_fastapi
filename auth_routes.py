@@ -1,13 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import Usuario
 from dependencies import pegar_secao
-from main import pwd_context
+from main import pwd_context, ALGORITHM, ACESS_TOKEN_EXPIRE_MINUTES
 from schemas import UsuarioSchema, LoginSchema
 from sqlalchemy.orm import Session
+from jose import jwt, JWTError
+from datetime import datetime, timedelta, timezone
 
 auth_router = APIRouter (prefix="/auth", tags=["auth"])
 
 def criar_token(id_usuario):
+    data_expiracao = datetime.now(timezone.utc) + timedelta(minutes=ACESS_TOKEN_EXPIRE_MINUTES)
+    dic_info = {"sub": id_usuario, "exp": data_expiracao}
+
     token = f"fjnfodwn{id_usuario}"
     return token
 
