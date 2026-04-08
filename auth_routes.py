@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import Usuario
 from dependencies import pegar_secao
-from main import pwd_context, ALGORITHM, ACESS_TOKEN_EXPIRE_MINUTES
+from main import pwd_context, ALGORITHM, ACESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY
 from schemas import UsuarioSchema, LoginSchema
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
@@ -9,12 +9,12 @@ from datetime import datetime, timedelta, timezone
 
 auth_router = APIRouter (prefix="/auth", tags=["auth"])
 
-def criar_token(id_usuario):
-    data_expiracao = datetime.now(timezone.utc) + timedelta(minutes=ACESS_TOKEN_EXPIRE_MINUTES)
+def criar_token(id_usuario, duracao_token=ACESS_TOKEN_EXPIRE_MINUTES):
+    data_expiracao = datetime.now(timezone.utc) + timedelta(minutes=duracao_token)
     dic_info = {"sub": id_usuario, "exp": data_expiracao}
+    jwt_codificado = jwt.encode(dic_info, SECRET_KEY, ALGORITHM)
+    return jwt_codificado
 
-    token = f"fjnfodwn{id_usuario}"
-    return token
 
 
 def autenticar_usuario(email, senha, session):
@@ -26,12 +26,20 @@ def autenticar_usuario(email, senha, session):
     return usuario
 
 
+
+def verificar_token(token, session: Session = Depends(pegar_secao)):
+    usuario = session.query(Usuario).filter(Usuario.id==1).first()
+    return usuario
+
+
+
 @auth_router.get("/")
 async def home():
     """ 
     Essa e a rota de autenticação
         """
     return {"mensagem": "Voce acessou a rota padrao de autenticacao", "autenticado": False}
+
 
 
 @auth_router.post("/criar_conta")
@@ -56,8 +64,20 @@ async def login(login_schema: LoginSchema, session: Session = Depends(pegar_seca
         raise HTTPException(status_code=400, detail="Usuario nao encontrado")
     else:
         acess_token = criar_token(usuario.id)
+        refresh_token = criar_token(usuario.id, duracao_token=timedelta(days=7))
         return {
             "acess_token": acess_token,
+            "refresh_token": refresh_token,
             "token_type": "Bearer"            
             }
     
+
+@auth_router.get("/refresh")
+async def user_refresh_token(token):
+    # verificar token
+    usuario = verificar_token(token)
+    acess_token = criar_token(usuario.id)
+    return {
+            "acess_token": acess_token,
+            "token_type": "Bearer"            
+            }
