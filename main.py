@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from passlib.context import CryptContext
 from dotenv import load_dotenv
 import os
+from fastapi.security import OAuth2PasswordBearer
 
 load_dotenv()
 
@@ -12,7 +13,9 @@ ACESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACESS_TOKEN_EXPIRE_MINUTES"))
 app = FastAPI()
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+oauth2_schema = OAuth2PasswordBearer(tokenUrl="auth/login")
 
+# Iniciar ambiente virtual: venv/scripts/activate
 # Iniciar o codico: uvicorn main:app --reload
 
 from auth_routes import auth_router

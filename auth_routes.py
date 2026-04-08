@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import Usuario
-from dependencies import pegar_secao
+from dependencies import pegar_secao, verificar_token
 from main import pwd_context, ALGORITHM, ACESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY
 from schemas import UsuarioSchema, LoginSchema
 from sqlalchemy.orm import Session
@@ -23,12 +23,6 @@ def autenticar_usuario(email, senha, session):
         return False
     elif pwd_context.verify(senha, usuario.senha):
         return False
-    return usuario
-
-
-
-def verificar_token(token, session: Session = Depends(pegar_secao)):
-    usuario = session.query(Usuario).filter(Usuario.id==1).first()
     return usuario
 
 
@@ -66,18 +60,16 @@ async def login(login_schema: LoginSchema, session: Session = Depends(pegar_seca
         acess_token = criar_token(usuario.id)
         refresh_token = criar_token(usuario.id, duracao_token=timedelta(days=7))
         return {
-            "acess_token": acess_token,
+            "access_token": acess_token,
             "refresh_token": refresh_token,
             "token_type": "Bearer"            
             }
     
 
 @auth_router.get("/refresh")
-async def user_refresh_token(token):
-    # verificar token
-    usuario = verificar_token(token)
+async def user_refresh_token(usuario: Usuario = Depends(verificar_token)):
     acess_token = criar_token(usuario.id)
     return {
             "acess_token": acess_token,
             "token_type": "Bearer"            
-            }
+            } 
