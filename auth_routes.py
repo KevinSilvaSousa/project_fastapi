@@ -6,11 +6,12 @@ from schemas import UsuarioSchema, LoginSchema
 from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 from datetime import datetime, timedelta, timezone
+from fastapi.security import OAuth2PasswordRequestForm
 
 auth_router = APIRouter (prefix="/auth", tags=["auth"])
 
-def criar_token(id_usuario, duracao_token=ACESS_TOKEN_EXPIRE_MINUTES):
-    data_expiracao = datetime.now(timezone.utc) + timedelta(minutes=duracao_token)
+def criar_token(id_usuario, duracao_token: timedelta):
+    data_expiracao = datetime.now(timezone.utc) + duracao_token
     dic_info = {"sub": id_usuario, "exp": data_expiracao}
     jwt_codificado = jwt.encode(dic_info, SECRET_KEY, ALGORITHM)
     return jwt_codificado
@@ -21,7 +22,7 @@ def autenticar_usuario(email, senha, session):
     usuario = session.query(Usuario).filter(Usuario.email==email).first()
     if not usuario:
         return False
-    elif pwd_context.verify(senha, usuario.senha):
+    elif not pwd_context.verify(senha, usuario.senha):
         return False
     return usuario
 
@@ -57,8 +58,8 @@ async def login(login_schema: LoginSchema, session: Session = Depends(pegar_seca
     if not usuario:
         raise HTTPException(status_code=400, detail="Usuario nao encontrado")
     else:
-        acess_token = criar_token(usuario.id)
-        refresh_token = criar_token(usuario.id, duracao_token=timedelta(days=7))
+        acess_token = criar_token(usuario.id, timedelta(minutes=30))
+        refresh_token = criar_token(usuario.id, timedelta(days=7))
         return {
             "access_token": acess_token,
             "refresh_token": refresh_token,
@@ -73,3 +74,17 @@ async def user_refresh_token(usuario: Usuario = Depends(verificar_token)):
             "acess_token": acess_token,
             "token_type": "Bearer"            
             } 
+
+
+
+@auth_router.post("/login-form")
+async def login_form(dados_formulario: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(pegar_secao)):
+    usuario = autenticar_usuario(dados_formulario.username, dados_formulario.password, session)
+    if not usuario:
+        raise HTTPException(status_code=400, detail="Usuario nao encontrado")
+    else:
+        acess_token = criar_token(usuario.id, timedelta(minutes=30))
+        return {
+            "access_token": acess_token,
+            "token_type": "Bearer"            
+            }
