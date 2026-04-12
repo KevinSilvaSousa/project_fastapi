@@ -1,7 +1,7 @@
 import requests
 
 headers = {
-    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjQsImV4cCI6MTc3NTY3MjUxNX0.vAIviuGv0N8I9zB540XcW4uImUVWJ-Uz5Ehnbt6ovY4"
+    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjksImV4cCI6MTc3NjAxOTcxOX0.Wf7Xx0GKuL1q8BnGY1giDFpih3vGGbUA_WUUvrYZl-I"
 }
 requisicao = requests.get("http://127.0.0.1:8000/auth/refresh", headers=headers)
 

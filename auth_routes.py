@@ -58,7 +58,7 @@ async def login(login_schema: LoginSchema, session: Session = Depends(pegar_seca
     if not usuario:
         raise HTTPException(status_code=400, detail="Usuario nao encontrado")
     else:
-        acess_token = criar_token(usuario.id, timedelta(minutes=30))
+        acess_token = criar_token(usuario.id, timedelta(minutes=300000))
         refresh_token = criar_token(usuario.id, timedelta(days=7))
         return {
             "access_token": acess_token,
@@ -83,7 +83,7 @@ async def login_form(dados_formulario: OAuth2PasswordRequestForm = Depends(), se
     if not usuario:
         raise HTTPException(status_code=400, detail="Usuario nao encontrado")
     else:
-        acess_token = criar_token(usuario.id, timedelta(minutes=30))
+        acess_token = criar_token(usuario.id, timedelta(minutes=300000))
         return {
             "access_token": acess_token,
             "token_type": "Bearer"            

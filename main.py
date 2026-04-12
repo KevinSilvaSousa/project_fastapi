@@ -28,3 +28,9 @@ app.include_router(order_router)
 
 #"access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjcsImV4cCI6MTc3NTc2NTYwMH0.pAx9aiNjx_4Arn1VCbibwKQZzhN4fGW2pwOa5ulRSZo",
 #  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjcsImV4cCI6MTc3NjM2ODYwMH0.KLxTy5J9yQNHBaHwp36LF2s2kRkVBfcpVuYHvE2BEcE", : Os dois da paty@gmail.com
+
+
+
+  #"access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjgsImV4cCI6MTc3NTg0MzgyOH0.amAxAyDVEzZ69MOyj3A2ZCCeklWjwSUab7lYnQBbiaw",
+ # "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjgsImV4cCI6MTc3NjQ0NjgyOH0.8fZCt7VNrJYQ_hlmGloQeh3Z2z28q4U8oYroHQlSD-k",
+  #"token_type": "Bearer"
