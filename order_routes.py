@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from dependencies import pegar_secao, verificar_token
-from schemas import PedidoSchema, ItemPedidoSchema
+from schemas import PedidoSchema, ItemPedidoSchema, ResponsePedidoSchema
 from models import Pedido, Usuario, ItensPedido
+from typing import List
 
 order_router = APIRouter (prefix="/order", tags=["order"] ) # Optional: dependencies=[Depends(verificar_token)] :  (esse codigo ele vira global!)
 
@@ -70,3 +71,60 @@ async def adicionar_item_pedido(id_pedido: int, item_pedido_schema: ItemPedidoSc
         "pedido": pedido,
         "preco_pedido": pedido.preco
     }
+
+
+@order_router.post("/pedido/remover-item/{id_item_pedido}")
+async def remover_item_pedido(id_item_pedido: int, session: Session = Depends(pegar_secao), usuario: Usuario = Depends(verificar_token)):
+    item_pedido = session.query(ItensPedido).filter(ItensPedido.id==id_item_pedido).first()
+    pedido = session.query(Pedido).filter(Pedido.id==item_pedido.pedido.usuario).first()
+    if not item_pedido:
+        raise HTTPException(status_code=400, detail="Item Pedido não existente")
+    if not usuario.admin and usuario.id != pedido.usuario:
+        raise HTTPException (status_code=401, detail="Sem autorização para essa operação!")
+    session.delete(item_pedido)
+    pedido.calcular_preco()
+    session.commit()
+    return {
+        "mensagem": "Item deletado com sucesso",
+        "quantidade": len(pedido.itens),
+        "preco_pedido": pedido
+    }
+
+
+
+@order_router.post("/pedido/finalizar/{id_pedido}")
+async def finalizar_pedido(id_pedido: int, session: Session = Depends(pegar_secao), usuario: Usuario = Depends(verificar_token)):
+    pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
+    if not pedido: 
+        raise HTTPException(status_code=400, detail="Pedido não encontrado")
+    if not usuario.admin and usuario.id != pedido.usuario:
+        raise HTTPException(status_code=401, detail="Sem autorização para isso!")
+    pedido.status = "FINALIZADO"
+    session.commit()
+    return {
+        "messagem": f"Pedido numero: {pedido.id} finalizado com sucesso",
+        "pedido": pedido
+    }
+
+
+
+@order_router.get("/pedido/{id_pedido}")
+async def visualizar_pedido(id_pedido: int, session: Session = Depends(pegar_secao), usuario: Usuario = Depends(verificar_token)):
+    pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
+    if not pedido: 
+        raise HTTPException(status_code=400, detail="Pedido não encontrado")
+    if not usuario.admin and usuario.id != pedido.usuario:
+        raise HTTPException(status_code=401, detail="Sem autorização para isso!")
+    return {
+        "quantidade_itens_pedido": len(pedido.itens),
+        "pedido": pedido
+    }
+
+
+
+@order_router.get("/listar/pedidos-usuario", response_model=List[ResponsePedidoSchema])
+async def listar_pedidos(session: Session = Depends(pegar_secao), usuario: Usuario = Depends(verificar_token)):
+    pedidos = session.query(Pedido).filter(Pedido.usuario==usuario.id).all()
+    return pedidos
+    
+

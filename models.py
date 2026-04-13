@@ -62,11 +62,6 @@ class Pedido(Base):
 class ItensPedido(Base):
     __tablename__ = "itens_pedido"
 
- #   TAMANHO_PEDIDO = (
-#        ("PEQUENO", "PEQUENO"),
-#        ("MEDIO", "MEDIO"),
-#        ("GRANDE", "GRANDE")
-#    )
      
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     quantidade = Column("quantidade", Integer)

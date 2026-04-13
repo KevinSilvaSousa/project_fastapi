@@ -16,7 +16,7 @@ def pegar_secao():
 
 def verificar_token(token: str = Depends(oauth2_schema), session: Session = Depends(pegar_secao)):
     try:
-        dic_info = jwt.decode(token, SECRET_KEY, ALGORITHM)
+        dic_info = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         id_usuario = int(dic_info.get("sub"))
     except JWTError as error:
         raise HTTPException(status_code=401, detail="Acesso negado, verifique a validade do Token")
